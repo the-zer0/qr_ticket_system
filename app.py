@@ -8,6 +8,8 @@ import secrets
 import hashlib
 import json
 import os
+import zipfile
+from flask import send_file
 
 
 app = Flask(__name__)
@@ -89,6 +91,17 @@ def validate():
             return jsonify({"status": "already_used"})
     else:
         return jsonify({"status": "invalid"})
+
+@app.route("/download_qrs")
+def download_qrs():
+    zip_path = "qr_codes.zip"
+
+    with zipfile.ZipFile(zip_path, 'w') as zipf:
+        for filename in os.listdir("static"):
+            if filename.endswith(".png"):
+                zipf.write(os.path.join("static", filename), filename)
+
+    return send_file(zip_path, as_attachment=True)
 
 # Run locally
 if __name__ == "__main__":
