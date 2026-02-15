@@ -6,12 +6,15 @@ import os
 from datetime import datetime
 import secrets
 import hashlib
+import json
+import os
 
 
 app = Flask(__name__)
 
 # ========== FIREBASE SETUP ==========
-cred = credentials.Certificate("firebase_key.json")
+firebase_key = os.environ.get("FIREBASE_KEY")
+cred = credentials.Certificate(json.loads(firebase_key))
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 
