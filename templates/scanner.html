@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>QR Scanner</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+
+<h2>Scan Ticket</h2>
+<div id="reader" style="width:300px;"></div>
+<h3 id="result"></h3>
+
+<script>
+let html5QrcodeScanner;
+let scanningPaused = false;
+
+function onScanSuccess(decodedText) {
+
+    // Prevent multiple scans during pause
+    if (scanningPaused) return;
+
+    scanningPaused = true;
+
+    fetch("/validate", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ticket_id: decodedText})
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.status === "valid") {
+            document.body.style.backgroundColor = "lightgreen";
+            document.getElementById("result").innerHTML =
+                "✅ VALID TICKET";
+        }
+        else if (data.status === "already_used") {
+            document.body.style.backgroundColor = "red";
+            document.getElementById("result").innerHTML =
+                "❌ ALREADY USED";
+        }
+        else {
+            document.body.style.backgroundColor = "orange";
+            document.getElementById("result").innerHTML =
+                "❌ INVALID TICKET";
+        }
+
+        // Pause for 3 seconds
+        setTimeout(() => {
+            document.body.style.backgroundColor = "white";
+            document.getElementById("result").innerHTML = "";
+            scanningPaused = false;
+        }, 3000);
+    });
+}
+
+html5QrcodeScanner =
+    new Html5QrcodeScanner("reader", {
+        fps: 10,
+        qrbox: 250
+    });
+
+html5QrcodeScanner.render(onScanSuccess);
+</script>
+
+
+
+<br>
+<a href="/">Back to Home</a>
+
+</body>
+</html>
